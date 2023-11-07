@@ -31,6 +31,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-property:$kotestVersion")
+    testImplementation("io.kotest.extensions:kotest-assertions-ktor:2.0.0")
 
     val commonsCliVersion = "1.6.0"
     implementation("commons-cli:commons-cli:$commonsCliVersion")
@@ -87,7 +88,6 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
-        dependsOn("copy-test-fuseki-server")
         this.testLogging {
             this.showStandardStreams = true
         }
@@ -97,11 +97,6 @@ tasks {
         environment("MMS5_GRAPH_STORE_PROTOCOL_URL", System.getenv("MMS5_GRAPH_STORE_PROTOCOL_URL"))
         if (System.getenv("MMS5_LOAD_SERVICE_URL") != null)
             environment("MMS5_LOAD_SERVICE_URL", System.getenv("MMS5_LOAD_SERVICE_URL"))
-    }
-    register<Copy>("copy-test-fuseki-server") {
-        // Copy fuseki-server jar to known location (build/test-fuseki-server)
-        from(testFuseki.resolvedConfiguration.files)
-        destinationDir = project.buildDir.resolve("test-fuseki-server")
     }
 }
 tasks.test {
