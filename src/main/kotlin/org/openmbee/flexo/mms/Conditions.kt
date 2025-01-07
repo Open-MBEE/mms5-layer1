@@ -124,6 +124,10 @@ val ARTIFACT_QUERY_CONDITIONS = SNAPSHOT_QUERY_CONDITIONS.append {
     permit(Permission.READ_ARTIFACT, Scope.ARTIFACT)
 }
 
+val SCRATCH_QUERY_CONDITIONS = REPO_CRUD_CONDITIONS.append {
+    permit(Permission.READ_SCRATCH, Scope.SCRATCH)
+}
+
 val DIFF_QUERY_CONDITIONS = SNAPSHOT_QUERY_CONDITIONS.append {
     permit(Permission.READ_DIFF, Scope.DIFF)
 }
@@ -252,6 +256,21 @@ class ConditionsBuilder(val conditions: MutableList<Condition> = arrayListOf()) 
                 graph m-graph:AccessControl.Policies {
                     mp: a mms:Policy ;
                         ?policyExisting_p ?policyExisting_o .
+                }
+            """
+        }
+    }
+
+    fun scratchExists() {
+        require("scratchExists") {
+            handler = { layer1 -> "Scratch <${layer1.prefixes["mors"]}> does not exist." to
+                    if(null != layer1.ifMatch) HttpStatusCode.PreconditionFailed else HttpStatusCode.NotFound }
+
+            """
+                # scratch must exist
+                graph mor-graph:Metadata {
+                    mors: a mms:Scratch ;
+                        ?scratchExisting_p ?scratchExisting_o .
                 }
             """
         }
