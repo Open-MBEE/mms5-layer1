@@ -182,7 +182,7 @@ fun Route.commitModel() {
             }
         }
 
-        patchString += buildSparqlUpdate {
+        patchString += ";" + buildSparqlUpdate {
             if(deleteBgpString.isNotEmpty()) {
                 delete {
                     graph("?stagingGraph") {
