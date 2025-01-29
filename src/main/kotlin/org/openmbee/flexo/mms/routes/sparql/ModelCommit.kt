@@ -168,7 +168,6 @@ fun Route.commitModel() {
 
 
         val commitUpdateString = genCommitUpdate(localConditions,"")
-        )
 
         val interimIri = "${prefixes["mor-lock"]}Interim.${transactionId}"
 
