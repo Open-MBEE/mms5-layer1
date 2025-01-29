@@ -167,7 +167,7 @@ fun Route.commitModel() {
         }
 
 
-        val commitUpdateString = genCommitUpdate(localConditions,"")
+        var commitUpdateString = genCommitUpdate(localConditions,"")
 
         val interimIri = "${prefixes["mor-lock"]}Interim.${transactionId}"
 
@@ -181,7 +181,7 @@ fun Route.commitModel() {
             }
         }
 
-        patchString += ";" + buildSparqlUpdate {
+        commitUpdateString += "; " + buildSparqlUpdate {
             if(deleteBgpString.isNotEmpty()) {
                 delete {
                     graph("?stagingGraph") {
@@ -198,13 +198,17 @@ fun Route.commitModel() {
             }
             where {
                 graph("m-graph:Transactions") {
-                    raw("""
+                    raw(
+                        """
                         mt: mms-txn:stagingGraph ?stagingGraph .
-                    """.trimIndent())
+                    """.trimIndent()
+                    )
                 }
 
-                graph("?stagingGraph") {
-                    raw(whereString)
+                if(whereString.isNotEmpty()) {
+                    graph("?stagingGraph") {
+                        raw(whereString)
+                    }
                 }
             }
         }
