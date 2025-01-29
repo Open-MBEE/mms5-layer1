@@ -167,28 +167,7 @@ fun Route.commitModel() {
         }
 
 
-        val commitUpdateString = genCommitUpdate(localConditions,
-            delete=if(deleteBgpString.isNotEmpty()) {
-                """
-                    graph ?stagingGraph {
-                        $deleteBgpString
-                    }
-                """.trimIndent()
-            } else "",
-            insert=if(insertBgpString.isNotEmpty()) {
-                """
-                    graph ?stagingGraph {
-                        $insertBgpString
-                    }
-                """.trimIndent()
-            } else "",
-            where=(if(whereString.isNotEmpty()) {
-                """
-                    graph ?stagingGraph {
-                        $whereString
-                    }
-                """.trimIndent()
-            } else "")
+        val commitUpdateString = genCommitUpdate(localConditions,"")
         )
 
         val interimIri = "${prefixes["mor-lock"]}Interim.${transactionId}"
@@ -200,6 +179,34 @@ fun Route.commitModel() {
             compressStringLiteral(patchString)?.let {
                 patchString = it
                 patchStringDatatype = MMS_DATATYPE.sparqlGz
+            }
+        }
+
+        patchString += buildSparqlUpdate {
+            if(deleteBgpString.isNotEmpty()) {
+                delete {
+                    graph("?stagingGraph") {
+                        raw(deleteBgpString)
+                    }
+                }
+            }
+            if(insertBgpString.isNotEmpty()) {
+                insert {
+                    graph("?stagingGraph") {
+                        raw(insertBgpString)
+                    }
+                }
+            }
+            where {
+                graph("m-graph:Transactions") {
+                    raw("""
+                        mt: mms-txn:stagingGraph ?stagingGraph .
+                    """.trimIndent())
+                }
+
+                graph("?stagingGraph") {
+                    raw(whereString)
+                }
             }
         }
 
