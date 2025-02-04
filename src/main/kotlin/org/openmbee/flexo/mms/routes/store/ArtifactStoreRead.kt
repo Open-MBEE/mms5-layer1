@@ -106,9 +106,14 @@ suspend fun<TRequestContext: GenericRequest> Layer1Context<TRequestContext, Stor
             auth(Permission.READ_ARTIFACT.scope.id, ARTIFACT_QUERY_CONDITIONS)
 
             // provide artifact bind pattern
-            graph("mor-graph:Artifacts") {
-                raw(SPARQL_BIND_ARTIFACT)
-            }
+            raw("""
+                optional{
+                    graph mor-graph:Artifacts {
+                        $SPARQL_BIND_ARTIFACT
+                    }
+                }
+            """)
+            raw(permittedActionSparqlBgp(Permission.READ_ARTIFACT, Scope.REPO))
         }
     }
 
@@ -154,11 +159,14 @@ suspend fun<TRequestContext: GenericRequest> Layer1Context<TRequestContext, Stor
             ZipOutputStream(this).use { stream ->
                 // each artifact
                 for (artifactResource in model.listSubjects()) {
+                    if (artifactResource.uri.contains(MMS_URNS.SUBJECT.auth)){
+                        continue
+                    }
                     // decode artifact
                     val decoded = decodeArtifact(artifactResource)
 
-                    // create zip entry
-                    val entry = ZipEntry(artifactResource.localName+"."+decoded.extension)
+                    // create zip entry - can't use artifactResource.localName, it drops number characters from beginning of URI
+                    val entry = ZipEntry(artifactResource.toString().split("/").last()+"."+decoded.extension)
 
                     // open the entry
                     stream.putNextEntry(entry)
